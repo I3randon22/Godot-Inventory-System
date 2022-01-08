@@ -1,0 +1,21 @@
+using Godot;
+using System;
+
+public class ItemResource : Resource
+{
+	internal enum ItemType{
+		CONSUMABLE,
+		TOOLS,
+		RESOURCE,
+		EMPTY
+	}
+
+	[Export] internal string name = "";
+	[Export] internal ItemType type = ItemType.EMPTY;
+	[Export] internal bool stackable = false;
+	[Export] internal int maxStackSize = 0;
+	[Export] internal Texture icon = null;
+	[Export] internal int amount = 0;
+	[Export] internal int staminaDeplete = 0;
+	[Export] internal PackedScene Tool = null;
+}
