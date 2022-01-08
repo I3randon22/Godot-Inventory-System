@@ -1,0 +1,107 @@
+using Godot;
+using System;
+using System.Collections.Generic;
+
+public class Inventory : Resource
+{
+	[Signal] public delegate void ItemsChanged(int index);
+	[Export] public List<ItemResource> inventoryItems = new List<ItemResource>();
+	bool itemAdded = false;
+
+	public ItemResource SetItems(int index, ItemResource item)
+	{
+		//previous item is equal to current item
+		ItemResource previousItem = inventoryItems[index];
+		//change current item to set item and amount
+		inventoryItems[index] = item;
+		//Emitting a signal to let the inventory display update of the changes
+		EmitSignal("ItemsChanged", index);
+		//return the previous item(incase u want to do something with it)
+		return previousItem;
+	}
+
+	public void AddItems(int amount, ItemResource item)
+	{
+		//checks inventory
+		for(int i = 0; i < inventoryItems.Count; i++)
+		{
+			if(inventoryItems[i] != null) //item slot has an item
+			{
+				//if item has the same name and stackable then add onto it
+				if(inventoryItems[i].name == item.name && item.stackable)
+				{
+					if(inventoryItems[i].amount < item.maxStackSize)
+					{
+						inventoryItems[i].amount += amount;
+						EmitSignal("ItemsChanged", i);
+					
+						itemAdded = true;
+						break;
+					}
+					
+				} 
+			}
+		}
+
+		if(!itemAdded)
+		{
+			for(int i = 0; i < inventoryItems.Count; i++)
+			{
+				if(inventoryItems[i] == null)
+				{
+					inventoryItems[i] = item;
+					inventoryItems[i].amount = amount;
+					EmitSignal("ItemsChanged", i);		
+					break;
+				}
+			}
+		}
+		
+		itemAdded = false;
+		
+	}
+
+	public void SwapItems(int index, int targetIndex)
+	{
+		//target item is equal to the item you want
+		ItemResource targetItem = inventoryItems[targetIndex];
+		//item is current item
+		ItemResource item = inventoryItems[index];
+		//swap target and current item
+		inventoryItems[targetIndex] = item;
+		inventoryItems[index] = targetItem;
+		//swap amount
+		EmitSignal("ItemsChanged", index, targetIndex);
+	}
+
+	public ItemResource RemoveItem(int index)
+	{
+		//previous item is equal to current item
+		ItemResource previousItem = inventoryItems[index];
+		//remove item and amount
+		inventoryItems[index] = null;
+		EmitSignal("ItemsChanged", index);
+		//return previous item(incase you want to do something with it)
+		return previousItem;
+	}
+
+	public void MakeItemsUnique()
+	{
+		//Create a new List of unique items of item resource
+		List<ItemResource> uniqueItems = new List<ItemResource>();
+		//check each item in items
+		foreach(ItemResource item in inventoryItems)
+		{
+			//if item is there store it in unique items
+			if(item is ItemResource)
+			{
+				uniqueItems.Add(item);
+			}
+			else //else dont store it
+			{
+				uniqueItems.Add(null);
+				inventoryItems = uniqueItems;
+			}
+		}
+	}
+}
