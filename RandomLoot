@@ -7,7 +7,7 @@ public class RandomLoot : MonoBehaviour
     [serializeField] internal ItemContainer inv;
     [serializeField] internal int total;
     [serializeField] internal int randomNum;
-    int rarity;
+    private int rarity;
 
     public ItemSlot GetRandomItem()
     {
