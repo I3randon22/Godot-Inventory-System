@@ -1,0 +1,51 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class RandomLoot : MonoBehaviour
+{
+    [serializeField] internal ItemContainer inv;
+    [serializeField] internal int total;
+    [serializeField] internal int randomNum;
+    int rarity;
+
+    public ItemSlot GetRandomItem()
+    {
+        total = 0;
+        //Weight loot table
+        foreach (ItemSlot item in inv.slots)
+        {
+            total += item.item.rarityPercent;
+        }
+
+        randomNum = Random.Range(0, total);
+
+        foreach (ItemSlot item in inv.slots)
+        {
+            int weight = item.item.rarityPercent;
+            //is random number <= to current weight
+            if (randomNum <= weight)
+            {
+                //Give Item
+                foreach (ItemSlot items in inv.slots)
+                {
+                    if (weight == items.item.rarityPercent)
+                    {
+                        return items;
+                    }
+                }
+            }
+            else
+            {
+                randomNum -= weight;
+            }
+        }
+
+        return null;
+    }
+
+    public void Destroy()
+    {
+        Destroy(this.gameObject);
+    }
+}
