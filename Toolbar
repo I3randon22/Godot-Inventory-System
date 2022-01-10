@@ -1,0 +1,116 @@
+using Godot;
+using System;
+
+public class Toolbar : Node2D
+{
+	[Signal] public delegate void player_swinging_tool(PackedScene myItem);
+	ToolbarSlotDisplay toolbarSlotDisplay;
+	internal static int selectedTool = 0;
+	[Export] internal int toolbarSize = 7;
+	private int toolbarItemsSize;
+	internal PackedScene myItem = null;
+
+	ToolManager toolManager;
+
+	internal int itemCount = 0;
+
+	public override void _Ready()
+	{
+		toolbarSlotDisplay = GetNode<ToolbarSlotDisplay>(GetTree().CurrentScene.GetPath() + "/CanvasLayer/GUI/Inventory/Toolbar/ToolbarDisplay");
+		toolManager = GetNode<ToolManager>("../GrabHand");
+		Equip();
+	}
+
+	//return the item in the selection slot
+	public static ItemResource GetItem
+	{
+		get
+		{
+			if(GameManager.inventory.inventoryItems[selectedTool] is ItemResource)
+			{
+				return GameManager.inventory.inventoryItems[selectedTool];
+			}
+			else
+			{
+				return new ItemResource();
+			}
+		}
+	}
+
+	public void GetItemSize()
+	{
+		//Go through all toolbar slots and check if there is an item in that slot
+		for (int i = 0; i < toolbarSize; i++)
+		{
+			if (GameManager.inventory.inventoryItems[i] is ItemResource)
+			{
+				itemCount++;
+			}
+		}
+
+		toolbarItemsSize = itemCount;
+		itemCount = 0;
+	}
+
+	public override void _Process(float _delta)
+	{
+		if(!GameManager.paused)
+		{
+			NavigateToolBar(); //Goto NavigationToolBar
+		}
+	}
+
+	private void NavigateToolBar()
+	{
+		GetItemSize();
+		if(Input.IsActionJustPressed("NavigateRight"))
+		{
+			//adds 1
+			selectedTool += 1;
+			//if the selected tool is bigger than or equal to toolbar size then reset to 0
+			selectedTool = (selectedTool >= toolbarSize ? 0 : selectedTool);
+			Equip();      
+		}
+		else if(Input.IsActionJustPressed("NavigateLeft"))
+		{
+			//if the selected tool is smaller than or equal to 0 then reset to toolbar size
+			selectedTool -= 1;
+			selectedTool = (selectedTool < 0 ? toolbarSize - 1 : selectedTool);
+			Equip();
+		}
+	}
+
+	public void Equip()
+	{
+		toolbarSlotDisplay._OnSelection(selectedTool);
+		//if item exist delete it
+		if(IsInstanceValid(toolManager.itemNode))
+		{
+			toolManager.itemNode.QueueFree();
+		}
+
+		//if current item is there then my item is equal to it
+		if(GetItem is ItemResource)
+		{
+			myItem = GetItem.Tool;
+
+			//if item type is Tools
+			if(GetItem.type == ItemResource.ItemType.TOOLS)
+			{
+				EmitSignal("player_swinging_tool", myItem);
+			}
+
+			GD.Print(selectedTool, " : ", GetItem.type, " EQUIPPED : ", GetItem.name);
+		}
+		else
+		{
+			GD.Print(selectedTool, " : EMPTY");
+		}
+	}
+
+	internal void Set(int id)
+	{
+		selectedTool = id;
+	}
+
+}
