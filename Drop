@@ -1,0 +1,40 @@
+using Godot;
+using System;
+
+public class Drop : Node2D
+{
+    [Export] PackedScene itemDrop = null;
+    [Export] int dropCount = 5;
+    [Export] float spread = 0.7f;
+   
+
+    public void Hit()
+    {
+        if(itemDrop != null)
+        {
+            while (dropCount > 0)
+            {
+                dropCount -= 1;
+                Node2D go = itemDrop.Instance() as Node2D;
+                
+                RandomNumberGenerator rng = new RandomNumberGenerator();
+
+                rng.Randomize();
+                var posX = spread * rng.Randf() - spread / 2;
+                rng.Randomize();
+                var posY = spread * rng.Randf() - spread / 2;
+
+                Vector2 pos = new Vector2(posX, posY);
+
+                go.Position = this.GlobalPosition + pos;
+                GetNode<YSort>(GetTree().CurrentScene.GetPath() +"/YSort/Drops").AddChild(go);
+
+            }
+        }
+        else
+        {
+            GD.PushError("ERROR: ITEMDROP NOT SET");
+        }
+        
+    }
+}
